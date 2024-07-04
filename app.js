@@ -3,11 +3,19 @@ const saml2 = require('saml2-js');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
+const session = require('express-session');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+app.use(session({
+  secret: 'supersecretkey',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false, maxAge: 60000 * 60 * 24 }
+}));
 
 // SAML Service Provider (SP) options
 const sp_options = {
@@ -42,6 +50,7 @@ app.get('/login', (req, res) => {
 app.post('/assert', (req, res) => {
   sp.post_assert(idp, { request_body: req.body, allow_unencrypted_assertion: true }, (err, saml_response) => {
     if (err) return res.sendStatus(500);
+    req.session.name_id = saml_response.user.name_id;
     res.render('welcome', { name_id: saml_response.user.name_id });
   });
 });
@@ -53,7 +62,7 @@ app.get('/xss', (req, res) => {
   res.send(`<h1>User Input: ${userInput}</h1>`);
 });
 
-// SQL Injection Vulnerability (for demonstration purposes only)
+// SQL Injection Vulnerability
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database(':memory:');
 

@@ -1,5 +1,4 @@
 # SAML Demo App
-
 This project demonstrates a simple application with SAML authentication and intentionally introduced vulnerabilities for educational purposes.
 
 ## Table of Contents
